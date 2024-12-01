@@ -1,0 +1,207 @@
+const multer = require("multer");
+const upload = multer();
+express = require("express");
+bodyParser = require("body-parser");
+mysql = require("mysql");
+
+app = express(); //conexão
+port = 3000; //porta que receberá a requisição
+
+connection = mysql.createConnection({
+  host: "gruposn4.mysql.uhserver.com",
+  user: "gruposn5",
+  password: "lyca@20132019",
+  database: "gruposn5",
+});
+
+connection.connect();
+
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use("/fotos", express.static("fotos"));
+
+
+
+//Inicio da Verificação de login
+app.post("/alunos", (req, res) => {
+  login = req.body.login;
+  senha = req.body.senha;
+
+  console.log("Solicitando....");
+
+  const sql = `INSERT INTO Livro (login,senha) VALUES (?, ?)`;
+
+  connection.query(sql, [login, senha], (error, results) => {
+    console.log(results);
+    console.log(error);
+
+    if (error) throw error;
+    res.send("Login feito com sucesso!");
+  });
+});
+
+//requisição do servidor para efetuar o login
+app.post("/alunoslogin/:Login", (req, res) => {
+  console.log("acesso ao servidor");
+  const Login = req.params.Login;
+  console.log(Login);
+  const sql = "SELECT Senha, Perfil FROM Alunos WHERE Login = " + Login;
+  console.log(sql);
+
+  
+  
+  connection.query(sql, (error, results) => {
+    if (error) throw error;
+    senhaperfil = results[0].Senha + results[0].Perfil;
+    console.log(senhaperfil);
+    console.log(results);
+    res.status(200);
+    res.json(senhaperfil); //retornou a senha do usuário
+  });
+});
+//Fim da Verificação de login
+
+
+
+
+app.get("/listaalunos/:cpfLogin", (req, res) => {
+  const idmatricula = req.params.cpfLogin;
+  console.log(idmatricula);
+
+  // SELECT colunas FROM Alunos as a LEFT JOIN Cursos as c
+  // ON c.fkCursoAluno = a.id
+  // WHERE IdMatricula = ?
+
+  const sql =
+    "SELECT Nome, idmatricula, Foto, Data_nascimento, Turma, Login, c.CursoNome FROM Alunos as a LEFT JOIN Cursos as c ON a.fkCursoAluno = c.IdCursos WHERE Login = ?";
+  console.log(sql);
+  connection.query(sql, [idmatricula], (error, results) => {
+    if (error) throw error;
+    res.json(results);
+  });
+});
+
+app.get("/ficha/:cpfLogin", (req, res) => {
+  const idmatricula = req.params.cpfLogin;
+  console.log("xxxxxxxxxxxx" + idmatricula);
+
+  // SELECT colunas FROM Alunos as a LEFT JOIN Cursos as c
+  // ON c.fkCursoAluno = a.id
+  // WHERE IdMatricula = ?
+
+  const sql =
+    "SELECT Nome, idmatricula, Email, Rg, Endereço, Telefone, Data_nascimento, Turma, Login, c.CursoNome FROM Alunos as a LEFT JOIN Cursos as c ON a.fkCursoAluno = c.IdCursos WHERE Login = ?";
+  console.log(sql);
+  connection.query(sql, [idmatricula], (error, results) => {
+    if (error) throw error;
+    res.json(results);
+  });
+});
+
+/*
+app.get("/ficha/:cpfLogin", (req, res) => {
+  const idmatricula = req.params.cpfLogin;
+  console.log("matricula" + idmatricula)
+
+  // SELECT colunas FROM Alunos as a LEFT JOIN Cursos as c
+  // ON c.fkCursoAluno = a.id
+  // WHERE IdMatricula = ?
+
+  const sql = "SELECT Nome, idmatricula, Data_nascimento, Turma, Login, c.CursoNome FROM Alunos as a LEFT JOIN Cursos as c ON a.fkCursoAluno = c.IdCursos WHERE Login = ?";
+  console.log(sql)
+    connection.query(sql, [idmatricula], (error, results) => {
+    if (error) throw error;
+    res.json(results);
+  });
+});
+*/
+
+//notis da parte do bruninho lindasso e bibi mara
+app.get("/notis", (req, res) => {
+  
+  // SELECT colunas FROM Alunos as a LEFT JOIN Cursos as c
+  // ON c.fkCursoAluno = a.id
+  // WHERE IdMatricula = ?
+
+  const sql =
+    "SELECT Nome_remetente, Título, Mensagem FROM Notificações";
+  console.log(sql);
+  connection.query(sql, (error, results) => {
+    if (error) throw error;
+    res.json(results);
+  });
+});
+//fim da era do brunao lindasso e bibi mara
+
+
+//INICIO DO TESTE - BIANCA - AVALIAÇÕES
+app.post("/avaliacoes", (req, res) => {
+  sugestao = req.body.sugestao;
+  avaliacao = req.body.avaliacao;
+
+  console.log("Solicitando....");
+
+  console.log("Sugestão: " + sugestao);
+  console.log("Avaliação" + avaliacao);
+
+  const sql = `INSERT INTO Avaliações (descricao,nota) VALUES (?, ?)`;
+
+  connection.query(sql, [sugestao, avaliacao], (error, results) => {
+    console.log(results);
+    console.log(error);
+
+    if (error) throw error;
+    res.send("Agradecemos pelo Feedback!");
+  });
+});
+//FINAL DO TESTE - BIANCA - AVALIAÇÕES
+
+
+
+//INICIO DO TESTE - BIANCA - NOTIFICAÇÕES
+app.post("/notifica", (req, res) => {
+  
+  remetente = req.body.remetente;
+  titulo = req.body.titulo;
+  mensagem = req.body.mensagem;
+  
+  console.log("Solicitando....");
+
+  console.log("Remetente" + remetente);
+  console.log("Título" + titulo);
+  console.log("Mensagem: " + mensagem);
+  
+  const sql = `INSERT INTO Notificações (Nome_remetente, Título, Mensagem) VALUES (?, ?, ?)`;
+
+  connection.query(sql, [remetente, titulo, mensagem], (error, results) => {
+    console.log(results);
+    console.log(error);
+
+    if (error) throw error;
+    res.send("sucesso!");
+  });
+});
+//FINAL DO TESTE - BIANCA - NOTIFICAÇÕES
+
+
+
+//FINAL DO TESTE - GEO - FOTO
+app.post("/upload/:Login", upload.single("avatar"), (req, res) => {
+  const image = req.file.buffer;
+  const fs = require("fs");
+  res.json({ message: "ok" });
+
+  //os parametros em que é atribuido, o nome do arquivo e o caminho
+  const login = req.params.Login;
+
+  //criando o caminho para salvar a foto, armazena as fotos no buffer de forma local
+  let buff = Buffer.from(image, "base64");
+  //cria uma pasta e coloca as fotos dentro dela, de acor  do com o login do aluno
+  fs.writeFileSync("fotos/" + login + ".jpeg", buff);
+});
+
+//a porta em que o servidor está rodando
+app.listen(port, () => {
+  console.log(`Servidor rodando na porta ${port}`);
+});
+//FINAL DO TESTE - GEO - FOTO
